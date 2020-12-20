@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      #email-sug-wrapper {
+        list-style: none;
+      }
+      .current {
+        background-color: skyblue;
+      }
+      /* .email-sug li:hover {
+        background-color: skyblue;
+      } */
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <input type="text" id="input-email" />
+      <ul class="email-sug" id="email-sug-wrapper"></ul>
+    </div>
+    <script>
+      // trim()函数去掉首和尾的空格
+      //获取到输入内容的函数
+      function getText() {
+        var input = document.getElementById("input-email");
+        return input.value.trim();
+      }
+      //判断是否生成新数组，后缀
+      function currentList() {
+        var text = getText();
+        var currentList = [];
+        //如果找到了符号@
+        if (text.search("@") != 0) {
+          var len = text.search("@");
+          //获取到@符号之后的子串
+          var t = text.substring(len + 1, text.length);
+          if (t === "") {
+            return postfixList;
+          }
+          //遍历原来的数组
+          for (var i = 0; i < postfixList.length; i++) {
+            //如果@符号之后有和事先准备好的数组相同的项，则加入进去
+            if (postfixList[i].search(t) == 0) {
+              currentList.push(postfixList[i]);
+            }
+          }
+          return currentList;
+        } else {
+          return postfixList;
+        }
+      }
+      //具体生成一个提示数组，输入拼接后缀
+      function promotMess() {
+        var text = getText();
+        var tips = [];
+        //获取@符号之前的内容
+        if (text.indexOf("@") != -1) {
+          var ahead = text.slice(0, text.indexOf("@"));
+          //遍历数组，这里遍历的是之前生成好了的提示后缀数组
+          for (var i = 0; i < currentList().length; i++) {
+            tips[i] = ahead + "@" + currentList()[i];
+          }
+        } else {
+          for (var i = 0; i < postfixList.length; i++) {
+            tips[i] = text + "@" + postfixList[i];
+          }
+        }
+        return tips;
+      }
+      //将数组的内容添加到li里面
+      function add() {
+        var email = document.getElementById("email-sug-wrapper");
+        var tips = promotMess();
+        //清空之前在email中的信息，为了后面可以刷新
+        while (email.hasChildNodes()) {
+          email.removeChild(email.firstChild);
+        }
+        for (var i = 0; i < tips.length; i++) {
+          var li = document.createElement("li");
+          li.innerHTML = tips[i];
+          email.appendChild(li);
+        }
+      }
+      //判断是否该显示提示框
+      function judge() {
+        if (getText() == "") {
+          email.style.display = "none";
+        } else {
+          email.style.display = "block";
+        }
+      }
+      var postfixList = [
+        "163.com",
+        "gmail.com",
+        "126.com",
+        "qq.com",
+        "263.net",
+      ];
+      var input = document.getElementById("input-email");
+      var email = document.getElementById("email-sug-wrapper");
+      input.addEventListener("input", function () {
+        judge();
+        add();
+        //设置data属性，方便计数
+        for (var i = 0; i < promotMess().length; i++) {
+          email.children[i].setAttribute("data", i);
+        }
+      });
+      var cnt = 0;
+      var time = 0;
+      input.addEventListener("keyup", function (e) {
+        // console.dir(e);
+
+        if (input.value == "") {
+          cnt = 0;
+          time = 0;
+        }
+        if (e.code == "ArrowUp") {
+          if (cnt == 0) {
+            cnt = promotMess().length - 1;
+          } else {
+            cnt = (cnt - 1) % promotMess().length;
+          }
+        } else if (e.code == "ArrowDown") {
+          if (time != 0) {
+            cnt = (cnt + 1) % promotMess().length;
+          }
+          time++;
+        }
+        if (email.hasChildNodes()) {
+          for (var i = 0; i < promotMess().length; i++) {
+            email.children[i].className = "";
+          }
+          email.children[cnt].className = "current";
+        }
+        if (e.code == "Enter") {
+          var currentli = document.getElementsByClassName("current")[0];
+          input.value = currentli.innerHTML;
+          email.style.display = "none";
+        }
+      });
+      email.addEventListener("mouseover", function (e) {
+        console.dir(e);
+        for (var i = 0; i < promotMess().length; i++) {
+          email.children[i].className = "";
+        }
+        e.target.className = "current";
+        // input.value = e.target.innerHTML;
+      });
+      email.addEventListener("click", function (e) {
+        input.value = e.target.innerHTML;
+        email.style.display = "none";
+      });
+    </script>
+  </body>
+</html>
